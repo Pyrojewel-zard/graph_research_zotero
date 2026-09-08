@@ -25,7 +25,7 @@ jobs:
         run: test -f vendor/meta-knowledge-graph/mkg/__init__.py
       - name: Ruff
         run: ruff check src tests
-      - name: Pytest
-        run: pytest -q
+      - name: Pytest integration package
+        run: pytest -q tests
       - name: CLI import smoke test
         run: python -c "from graph_research_zotero.cli import app; print(app.info.help)"
