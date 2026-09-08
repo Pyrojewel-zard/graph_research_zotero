@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Iterable
+from typing import Any
 
 from mkg.concept_extractor import LLMConceptExtractor
 from mkg.database import Database
@@ -38,7 +39,7 @@ class MKGBridge:
     def close(self) -> None:
         self.db.close()
 
-    def __enter__(self) -> "MKGBridge":
+    def __enter__(self) -> MKGBridge:
         return self
 
     def __exit__(self, *_: object) -> None:
