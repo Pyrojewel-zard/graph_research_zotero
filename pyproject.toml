@@ -26,6 +26,9 @@ dev = [
 [project.scripts]
 grz = "graph_research_zotero.cli:app"
 
+[tool.hatch.metadata]
+allow-direct-references = true
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/graph_research_zotero"]
 
