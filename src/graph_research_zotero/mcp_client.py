@@ -14,7 +14,7 @@ class MCPError(RuntimeError):
 class ZoteroMCPClient:
     """Small JSON-RPC client for the Streamable HTTP server in zotero-mcp.
 
-    The Zotero plugin returns a ``Mcp-Session-Id`` response header.  We keep it
+    The Zotero plugin returns a ``Mcp-Session-Id`` response header. We keep it
     and send it on subsequent calls, but deliberately use only public MCP tools
     rather than reading Zotero/plugin SQLite files directly.
     """
@@ -35,7 +35,7 @@ class ZoteroMCPClient:
     def close(self) -> None:
         self._http.close()
 
-    def __enter__(self) -> "ZoteroMCPClient":
+    def __enter__(self) -> ZoteroMCPClient:
         return self
 
     def __exit__(self, *_: object) -> None:
