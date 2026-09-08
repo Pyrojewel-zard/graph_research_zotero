@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 from .mcp_client import ZoteroMCPClient
 from .models import ZoteroPaper
@@ -110,7 +111,6 @@ class ZoteroPaperSource:
             if isinstance(content, str):
                 full_text = content
             elif isinstance(content, dict):
-                # Defensive fallback for clients/plugin versions that ignore format=text.
                 full_text = str(
                     content.get("content")
                     or content.get("text")
