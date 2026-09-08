@@ -1,0 +1,106 @@
+"""
+Conversation API routes
+"""
+
+from fastapi import APIRouter, Header, HTTPException
+
+from backend.dependencies import get_db
+from backend.schemas import ConversationBase, ConversationDetail, ConversationUpdate, MessageBase, MessageCreate
+
+router = APIRouter(prefix="/api/conversations", tags=["conversations"])
+
+
+@router.post("", response_model=ConversationBase)
+def create_conversation(device_id: str = Header(None, alias="X-Device-ID")):
+    """创建新对话"""
+    db = get_db()
+    if not device_id:
+        raise HTTPException(status_code=400, detail="X-Device-ID header required")
+
+    conv_id = db.create_conversation(device_id)
+    return ConversationBase(id=conv_id, title=None)
+
+
+@router.get("", response_model=list[ConversationBase])
+def list_conversations(device_id: str = Header(None, alias="X-Device-ID")):
+    """获取对话列表"""
+    db = get_db()
+    if not device_id:
+        raise HTTPException(status_code=400, detail="X-Device-ID header required")
+
+    conversations = db.get_conversations(device_id)
+    return [ConversationBase(**c) for c in conversations]
+
+
+@router.get("/{conv_id}", response_model=ConversationDetail)
+def get_conversation(conv_id: str, device_id: str = Header(None, alias="X-Device-ID")):
+    """获取单个对话及其消息"""
+    db = get_db()
+
+    conv = db.get_conversation(conv_id)
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Validate device ownership
+    if device_id and conv["device_id"] != device_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    messages = db.get_messages(conv_id)
+    return ConversationDetail(
+        id=conv["id"],
+        title=conv["title"],
+        created_at=conv["created_at"],
+        updated_at=conv["updated_at"],
+        messages=[MessageBase(**m) for m in messages],
+    )
+
+
+@router.put("/{conv_id}/title")
+def update_title(conv_id: str, request: ConversationUpdate, device_id: str = Header(None, alias="X-Device-ID")):
+    """更新对话标题"""
+    db = get_db()
+
+    conv = db.get_conversation(conv_id)
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Validate device ownership
+    if device_id and conv["device_id"] != device_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    db.update_conversation_title(conv_id, request.title)
+    return {"success": True}
+
+
+@router.delete("/{conv_id}")
+def delete_conversation(conv_id: str, device_id: str = Header(None, alias="X-Device-ID")):
+    """删除对话"""
+    db = get_db()
+
+    conv = db.get_conversation(conv_id)
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Validate device ownership
+    if device_id and conv["device_id"] != device_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    db.delete_conversation(conv_id)
+    return {"success": True}
+
+
+@router.post("/{conv_id}/messages")
+def add_message(conv_id: str, request: MessageCreate, device_id: str = Header(None, alias="X-Device-ID")):
+    """添加消息到对话"""
+    db = get_db()
+
+    conv = db.get_conversation(conv_id)
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Validate device ownership
+    if device_id and conv["device_id"] != device_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    db.add_message(conv_id, request.role, request.content, request.agent, request.attachments)
+    return {"success": True}

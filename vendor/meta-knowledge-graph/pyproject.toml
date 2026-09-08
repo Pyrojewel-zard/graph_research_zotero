@@ -1,0 +1,52 @@
+[project]
+name = "meta-knowledge-graph"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.31.0",
+    "pydantic>=2.6.0",
+    "typer>=0.9.0",
+    "rich>=13.7.0",
+    "pymupdf>=1.24.0",
+    "markitdown>=0.1.0",
+    "pypinyin>=0.51.0",
+    "fastapi>=0.109.0",
+    "uvicorn>=0.27.0",
+    "python-multipart>=0.0.6",
+    "langchain>=0.3.0",
+    "langgraph>=0.2.0",
+    "deepagents==0.5.1",
+    "python-dotenv>=1.0.0",
+    "cryptography>=42.0.0",
+    "semanticscholar>=0.11.0",
+    "langgraph-checkpoint-sqlite>=3.1.0",
+]
+
+[project.optional-dependencies]
+neo4j = [
+    "neo4j>=5.0.0",
+]
+dev = [
+    "ruff>=0.1.0",
+    "pyright>=1.1.350",
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.23.0",
+    "httpx>=0.26.0",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+src = ["backend", "mkg", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["backend", "mkg"]
+
+[tool.pyright]
+include = ["backend", "mkg"]
+pythonVersion = "3.10"
+typeCheckingMode = "standard"
