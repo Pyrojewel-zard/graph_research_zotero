@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "graph-research-zotero"
 version = "0.1.0"
-description = "Bridge Zotero MCP literature/embeddings into Meta Knowledge Graph research discovery."
+description = "Bridge Zotero MCP literature/embeddings into vendored Meta Knowledge Graph research discovery."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -38,7 +38,6 @@ dev = [
 
 [project.scripts]
 grz = "graph_research_zotero.cli:app"
-grz-bootstrap = "graph_research_zotero.bootstrap:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/graph_research_zotero"]

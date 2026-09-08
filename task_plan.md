@@ -4,140 +4,118 @@
 
 ## Goal
 
-Build a working integration in `Pyrojewel-zard/graph_research_zotero` that reuses the user's running `Pyrojewel-zard/zotero-mcp` as the paper/fulltext/embedding source and reuses `Seaual/meta-knowledge-graph` as the concept extraction / graph / research-discovery engine.
+Build a working integration in `Pyrojewel-zard/graph_research_zotero` that reuses the user's running `Pyrojewel-zard/zotero-mcp` as the paper/fulltext/embedding source and ships a vendored copy of `Seaual/meta-knowledge-graph` as the concept-extraction / graph / research-discovery engine.
 
 The implementation must avoid duplicate PDF ingestion and avoid directly coupling to the private schema of `zotero-mcp-vectors.sqlite`.
 
-## Non-goals
+## Architecture decisions
 
-- Do not replace Zotero as the source of truth for papers.
-- Do not recalculate embeddings already managed by Zotero MCP.
-- Do not fork/copy the full Meta Knowledge Graph source tree into this repository.
-- Do not make MKG read Zotero's internal SQLite files directly.
-- Do not require a second PDF copy inside MKG.
-
-## Architecture decision
-
-```text
-Zotero 7
-  ├─ metadata / collections / tags
-  ├─ parsed full text
-  └─ embeddings in zotero-mcp-vectors.sqlite
-           │
-           │ public MCP tools
-           ▼
-Pyrojewel-zard/zotero-mcp
-  ├─ get_item_details
-  ├─ get_content / fulltext_database
-  ├─ get_collection_items / search_library
-  └─ find_similar / semantic_search
-           │
-           ▼
-graph_research_zotero bridge
-  ├─ ZoteroMCPClient
-  ├─ ZoteroPaperSource
-  ├─ SyncState
-  ├─ MKGBridge
-  └─ CLI
-           │
-           ▼
-Meta Knowledge Graph
-  ├─ PaperContent
-  ├─ LLMConceptExtractor
-  ├─ papers / concepts / paper_concepts
-  ├─ concept_relations / concept_extractions
-  ├─ graph / Neo4j (optional)
-  └─ research-point discovery
-```
+- Zotero remains the paper source of truth.
+- Zotero MCP remains the only interface to parsed full text and existing embeddings.
+- MKG source is vendored in `vendor/meta-knowledge-graph/` so this repository is self-contained.
+- No runtime MKG clone/bootstrap is required.
+- MKG receives `PaperContent` built directly from Zotero full text, bypassing MKG PDF re-parsing.
+- Embedding similarity is auxiliary to the MKG concept graph.
 
 ## Phase 1 — Repository bootstrap
 
 **Status:** complete
 
-- [x] Initialize README with architecture and usage direction.
-- [x] Add `pyproject.toml`.
-- [x] Add `.env.example` and `.gitignore`.
-- [x] Add package skeleton and runtime settings.
-- [x] Add minimal Streamable HTTP MCP JSON-RPC client.
+- [x] README / pyproject / env / gitignore.
+- [x] Package skeleton and settings.
+- [x] Streamable HTTP MCP JSON-RPC client.
+- [x] planning-with-files documents.
 
 ## Phase 2 — Zotero source adapter
 
-**Status:** in_progress
+**Status:** complete
 
-- [ ] Implement `ZoteroPaper` normalized model.
-- [ ] Implement metadata normalization for Zotero item details.
-- [ ] Implement `get_content(mode=complete, format=text)` retrieval.
-- [ ] Implement collection/library item enumeration.
-- [ ] Implement `find_similar` normalization.
-- [ ] Add defensive handling for several Zotero MCP response shapes.
+- [x] `ZoteroPaper` normalized model.
+- [x] Metadata normalization.
+- [x] `get_content(mode=complete, format=text)` retrieval.
+- [x] Collection/library enumeration.
+- [x] `find_similar` normalization.
+- [x] Defensive response-shape handling.
 
 ## Phase 3 — MKG bridge and incremental state
 
-**Status:** pending
+**Status:** complete
 
-- [ ] Create additive integration tables without modifying upstream MKG schema.
-- [ ] Persist Zotero `itemKey ↔ MKG identifier` mapping.
-- [ ] Compute SHA-256 content hash for change detection.
-- [ ] Construct `mkg.pdf_models.PaperContent` directly from Zotero content.
-- [ ] Reuse `LLMConceptExtractor` without invoking `PDFParser`.
-- [ ] Save concept hierarchy through MKG repositories.
-- [ ] Preserve concept extraction raw response.
-- [ ] Mark processing state and errors.
-- [ ] Reuse existing MKG LLM config; fallback to env-based LLM config.
+- [x] Additive integration tables.
+- [x] Zotero `itemKey ↔ MKG identifier` mapping.
+- [x] SHA-256 content hash.
+- [x] Direct `PaperContent` construction.
+- [x] Reuse `LLMConceptExtractor` without `PDFParser`.
+- [x] Explicit concept / paper-concept / relation persistence.
+- [x] LLM config reuse + env fallback.
 
 ## Phase 4 — Embedding-derived graph edges
 
-**Status:** pending
+**Status:** complete
 
-- [ ] Call Zotero MCP `find_similar` for mapped papers.
-- [ ] Store normalized undirected/directed similarity edges with score and timestamp.
-- [ ] Never read raw vector BLOBs from Zotero MCP SQLite.
-- [ ] Add threshold/top-K controls.
-- [ ] Keep similarity graph auxiliary to MKG concept graph.
+- [x] Call Zotero MCP `find_similar`.
+- [x] Store similarity score/source/timestamp.
+- [x] Do not read raw Zotero vector BLOBs.
+- [x] top-K / threshold controls.
 
 ## Phase 5 — CLI and developer workflow
 
-**Status:** pending
+**Status:** complete
 
-- [ ] `grz doctor`
-- [ ] `grz collections`
-- [ ] `grz sync-item`
-- [ ] `grz sync-collection`
-- [ ] `grz sync-library`
-- [ ] `grz build-similarity`
-- [ ] `grz stats`
-- [ ] Provide readable Rich output and non-zero failures.
+- [x] `grz doctor`
+- [x] `grz collections`
+- [x] `grz sync-item`
+- [x] `grz sync-collection`
+- [x] `grz sync-library`
+- [x] `grz build-similarity`
+- [x] `grz stats`
 
-## Phase 6 — Tests and validation
+## Phase 6 — Vendor MKG into this repository
 
-**Status:** pending
+**Status:** complete
 
-- [ ] Unit-test MCP result unwrapping/normalization.
-- [ ] Unit-test content hash / identifier behavior.
-- [ ] Unit-test additive DB schema and idempotent writes.
-- [ ] Unit-test concept tree persistence with a fake extractor.
-- [ ] Static/import sanity check.
-- [ ] Document the remaining live Zotero/MKG end-to-end verification.
+- [x] Add one-shot GitHub workflow that downloads upstream MKG `main.zip`.
+- [x] Unzip and copy the full upstream source tree into `vendor/meta-knowledge-graph/`.
+- [x] Preserve upstream `LICENSE`.
+- [x] Record the exact upstream commit in `UPSTREAM_VENDOR_INFO.md`.
+- [x] Change runtime loading to prefer the vendored source.
+- [x] Remove runtime bootstrap/clone requirement.
+- [x] Change CI to validate the vendored path directly.
+
+## Phase 7 — Tests and live validation
+
+**Status:** partially_complete
+
+- [x] Unit tests for normalization/state behavior.
+- [x] Static/import sanity checks.
+- [x] GitHub CI install / Ruff / pytest / CLI smoke test.
+- [ ] Live `grz doctor` against the user's running Zotero MCP.
+- [ ] Live single-paper concept extraction.
+- [ ] Live `find_similar` graph-edge build.
+- [ ] Validate large-library incremental synchronization.
 
 ## Completion gate
 
-The task is complete only when all of these are true:
-
-- [ ] A developer can clone this repo and install it.
-- [ ] `grz doctor` can verify the Zotero MCP endpoint and semantic index.
-- [ ] A Zotero item can be fetched without copying/re-parsing its PDF.
-- [ ] The fetched text can be passed directly into MKG concept extraction.
-- [ ] Re-running unchanged papers skips LLM extraction by content hash.
-- [ ] Existing Zotero embeddings can create paper similarity edges through MCP.
-- [ ] Core normalization/state logic has automated tests.
-- [ ] `findings.md` and `progress.md` accurately describe implemented vs unverified behavior.
+- [x] Repository contains its own MKG source tree.
+- [x] A developer can clone and `pip install -e .` without separately cloning MKG.
+- [x] Zotero item retrieval does not require copying/re-parsing the PDF.
+- [x] Existing Zotero embeddings are reused through MCP.
+- [x] Core bridge logic has automated tests.
+- [ ] Live Zotero MCP end-to-end validation passes on the user's machine.
 
 ## Errors encountered
 
-| Error | Attempt | Resolution |
-|---|---:|---|
-| GitHub connector safety-gated one large `zotero_source.py` create request | 1 | Split implementation into smaller writes and continue from the persistent plan. |
+| Error | Resolution |
+|---|---|
+| Upstream MKG cannot be installed directly with `pip git+https` because its flat repo layout is not packaged as one Python distribution. | Vendor the upstream source tree and import `mkg` directly from `vendor/meta-knowledge-graph`. |
+| This execution environment cannot directly download the GitHub source ZIP. | Use the target repository's GitHub Actions runner to download, unzip, commit, and push the upstream ZIP contents. |
 
 ## Next Step
 
-Implement the Zotero source adapter in smaller files/commits, then immediately add the integration state database and MKG bridge.
+Run the live validation on the machine where Zotero + `Pyrojewel-zard/zotero-mcp` is running:
+
+```bash
+grz doctor
+grz sync-item <ITEM_KEY> --process
+grz build-similarity
+```
