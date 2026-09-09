@@ -120,49 +120,55 @@ Promotion from Level 1 to Level 2 should eventually be driven by signals such as
 
 ## Phase 8 — Vendor `ljg-paper` and define deep-read contract
 
-**Status:** in_progress
+**Status:** complete
 
-- [ ] Vendor only `skills/ljg-paper` from `Pyrojewel-zard/ljg-skills` into `.agents/skills/ljg-paper/`.
-- [ ] Preserve/record upstream repository + commit.
-- [ ] Define strict `PaperSignature` Pydantic schema.
-- [ ] Define `DeepReadResult` containing `note_markdown` + `signature`.
-- [ ] Build a prompt that combines paper content, MKG context, and the vendored `ljg-paper` instructions while treating paper text as untrusted data.
+- [x] Vendor only `skills/ljg-paper` from `Pyrojewel-zard/ljg-skills` into `.agents/skills/ljg-paper/`.
+- [x] Preserve/record upstream repository + commit.
+- [x] Define strict `PaperSignature` Pydantic schema.
+- [x] Define `DeepReadResult` containing `note_markdown` + `signature`.
+- [x] Build a prompt that combines paper content, MKG context, and the vendored `ljg-paper` instructions while treating paper text as untrusted data.
 
 ## Phase 9 — AgentRunner abstraction
 
-**Status:** pending
+**Status:** complete_mvp
 
-- [ ] Add `AgentRunner` protocol/base class.
-- [ ] Add `CodexRunner` using non-interactive `codex exec`.
-- [ ] Add `ClaudeRunner` using `claude -p` print mode.
-- [ ] Detect executable availability and expose it through `grz doctor`.
-- [ ] Keep command/timeout/model configurable by environment variables.
-- [ ] Parse/validate runner output independent of provider-specific wrappers.
-- [ ] Unit-test command construction and output parsing without needing authenticated CLIs in CI.
+- [x] Add `AgentRunner` protocol/base class.
+- [x] Add `CodexRunner` using non-interactive `codex exec`.
+- [x] Add `ClaudeRunner` using Claude Code print/JSON mode.
+- [x] Detect executable availability and expose it through `grz doctor`.
+- [x] Keep command/timeout/model configurable by environment variables.
+- [x] Parse/validate runner output independent of provider-specific wrappers.
+- [x] Unit-test command construction and output parsing without authenticated CLIs in CI.
+- [ ] Live authenticated Codex CLI execution on the user's machine.
+- [ ] Live authenticated Claude Code CLI execution on the user's machine.
 
 ## Phase 10 — Deep-read orchestration and persistence
 
-**Status:** pending
+**Status:** complete_mvp
 
-- [ ] Add `DeepReadService`.
-- [ ] Fetch a Zotero paper/full text through the existing MCP source.
-- [ ] Ensure Level-0 mapping exists before deep read.
-- [ ] Generate source hash including paper content + skill revision.
-- [ ] Skip unchanged successful deep reads unless `--force`.
-- [ ] Persist `notes/<paper>.md` and `analysis/<paper>.signature.json` under a deterministic data directory.
-- [ ] Persist deep-read metadata/status in additive SQLite tables.
-- [ ] Add `grz deep-read ITEM_KEY [--runner codex|claude] [--force]`.
+- [x] Add `DeepReadService`.
+- [x] Fetch a Zotero paper/full text through the existing MCP source.
+- [x] Ensure Level-0 mapping exists before deep read.
+- [x] Generate source hash including paper content + skill revision + runner + contract version.
+- [x] Skip unchanged successful deep reads unless `--force`.
+- [x] Persist deterministic `note.md` + `signature.json` artifacts.
+- [x] Persist deep-read metadata/status in additive SQLite tables.
+- [x] Add `grz deep-read ITEM_KEY [--runner codex|claude] [--force]`.
+- [x] Test complete orchestration with a deterministic fake runner in CI.
+- [ ] Live deep read of representative Zotero papers.
 
 ## Phase 11 — Research-signature embeddings
 
-**Status:** pending
+**Status:** complete_mvp
 
-- [ ] Define `EmbeddingProvider` interface.
-- [ ] Implement OpenAI-compatible `/embeddings` provider so local/OpenAI-compatible servers can be used without coupling to one vendor.
-- [ ] Embed canonicalized `PaperSignature` text only; never re-embed full paper text.
-- [ ] Persist model/dimension/vector/signature hash.
-- [ ] Add cosine research-similarity construction over the deep-read subset.
-- [ ] Add `grz embed-research ITEM_KEY` and `grz build-research-similarity`.
+- [x] Define `EmbeddingProvider` interface.
+- [x] Implement OpenAI-compatible `/embeddings` provider for hosted/local compatible servers.
+- [x] Embed canonicalized `PaperSignature` text only; never re-embed full paper text.
+- [x] Persist model/dimension/vector/signature hash.
+- [x] Add cosine research-similarity construction over the deep-read subset.
+- [x] Add `grz embed-research ITEM_KEY` and `grz build-research-similarity`.
+- [x] Test vector persistence and research-similarity edge construction with deterministic fake embeddings.
+- [ ] Live embedding endpoint/model quality validation.
 
 ## Phase 12 — Evaluation and promotion policy
 
@@ -171,18 +177,19 @@ Promotion from Level 1 to Level 2 should eventually be driven by signals such as
 - [ ] Compare full-text similarity vs research-signature similarity on representative papers.
 - [ ] Surface cases where semantic similarity is low but research similarity is high (transfer candidates).
 - [ ] Surface cases where semantic similarity is high but research similarity is low (competing routes / conceptual divergence).
+- [ ] Define quality metrics for `PaperSignature` extraction.
 - [ ] Add automatic Level-2 promotion only after manual MVP quality is validated.
 
-## Completion gate for this implementation round
+## Completion gate for the 2026-09-09 implementation round
 
-- [ ] `ljg-paper` is vendored/self-contained in the repo.
-- [ ] `AgentRunner` supports both Codex and Claude command construction.
-- [ ] A fake runner can complete a full `DeepReadService` test and produce valid note + `PaperSignature`.
-- [ ] `PaperSignature` can be embedded through a fake provider and persisted.
-- [ ] Research-similarity edges can be generated from persisted signature embeddings.
-- [ ] CLI exposes deep-read/research-embedding commands.
-- [ ] Ruff + integration pytest + CLI smoke tests pass in GitHub Actions.
-- [ ] Documentation clearly separates CI-tested behavior from live CLI/Zotero behavior that still requires the user's machine.
+- [x] `ljg-paper` is vendored/self-contained in the repo.
+- [x] `AgentRunner` supports both Codex and Claude command construction.
+- [x] A fake runner completes a full `DeepReadService` test and produces valid note + `PaperSignature`.
+- [x] `PaperSignature` can be embedded through a fake provider and persisted.
+- [x] Research-similarity edges can be generated from persisted signature embeddings.
+- [x] CLI exposes deep-read/research-embedding commands.
+- [x] Ruff + integration pytest + CLI smoke tests pass in GitHub Actions (run `34300574565`).
+- [x] Documentation clearly separates CI-tested behavior from live CLI/Zotero behavior that still requires the user's machine.
 
 ## Errors encountered
 
@@ -191,7 +198,8 @@ Promotion from Level 1 to Level 2 should eventually be driven by signals such as
 | Upstream MKG cannot be installed directly with `pip git+https` because its flat repo layout is not packaged as one Python distribution. | Vendor the upstream source tree and import `mkg` directly from `vendor/meta-knowledge-graph`. |
 | This execution environment cannot directly download the GitHub source ZIP. | Use the target repository's GitHub Actions runner to download, unzip, commit, and push upstream ZIP contents. |
 | Running root-level `pytest` after vendoring also collected MKG's upstream scripts/tests, including upstream failures unrelated to this bridge. | Scope integration CI to this repository's `tests/`; preserve upstream tests untouched. |
+| Ruff import formatting blocked several CI attempts before pytest. | Follow Ruff's emitted diff exactly; final run reaches and passes integration pytest. |
 
 ## Next Step
 
-Vendor `ljg-paper`, implement the deep-read data contract and `AgentRunner`, then add a fake-runner end-to-end test before wiring real CLI commands.
+Run live Zotero + Codex/Claude validation on representative papers, then use those real `PaperSignature` results to implement Phase 12: dual-space comparison, transfer/divergence discovery, and evidence-based Level-2 promotion policy.
