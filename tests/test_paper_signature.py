@@ -1,5 +1,6 @@
 import json
-import graph_research_zotero.paper_signature as signatures
+
+from graph_research_zotero import paper_signature as signatures
 
 
 PAYLOAD = {
