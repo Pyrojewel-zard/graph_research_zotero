@@ -1,57 +1,74 @@
 # Progress — Zotero MCP × Meta Knowledge Graph
 
-## Session 2026-09-08
+## Session 2026-09-09 — Deep-read / research embedding extension
+
+### Planning completed
+
+- Re-inspected `Pyrojewel-zard/ljg-skills` and selected only `ljg-paper` for the first integration round.
+- Re-inspected vendored MKG concept extraction and research-agent boundaries.
+- Confirmed the responsibilities are complementary:
+  - MKG = all/selected-corpus machine-comparable concept graph;
+  - `ljg-paper` = deep reading for selected high-value papers;
+  - Zotero embedding = full-text semantic space;
+  - research embedding = typed research-signature space.
+- Added the Level 0 / Level 1 / Level 2 processing model to `task_plan.md`.
+- Added ADRs for `AgentRunner`, dual artifacts, prompt-injection boundary, research embeddings, and limiting the initial skill surface.
+
+### Implementation target for this session
+
+```text
+Zotero item/fulltext
+      ↓
+ensure L0 mapping
+      ↓
+AgentRunner (Codex | Claude)
+      ↓
+vendored ljg-paper instruction
+      ↓
+DeepReadResult
+  ├─ note_markdown
+  └─ PaperSignature
+          ↓
+ canonical signature text
+          ↓
+ EmbeddingProvider
+          ↓
+ research_embeddings
+          ↓
+ research_similarity_edges
+```
+
+### Validation strategy
+
+GitHub Actions cannot authenticate to the user's local Codex/Claude accounts or reach localhost Zotero. Therefore CI will validate the architecture with deterministic fakes:
+
+- fake agent runner -> full deep-read persistence path;
+- fake embedding provider -> vector persistence;
+- cosine research-similarity -> edge construction;
+- CLI import/smoke tests;
+- Ruff and integration tests.
+
+Real CLI/Zotero execution remains a separate live validation on the user's machine.
+
+### Current phase
+
+Phase 8 — vendor `ljg-paper` and define typed deep-read contract: **in progress**.
+
+---
+
+## Session 2026-09-08 — Base integration and MKG vendoring
 
 ### Completed
 
-- Inspected `Pyrojewel-zard/zotero-mcp` and verified:
-  - Streamable HTTP MCP server;
-  - `get_content` complete-text path;
-  - semantic index / `find_similar` path;
-  - Zotero-side vector SQLite implementation.
-- Inspected `Seaual/meta-knowledge-graph` and identified `PaperContent -> LLMConceptExtractor` as the clean integration seam.
-- Implemented:
-  - MCP JSON-RPC client;
-  - Zotero paper normalization;
-  - full-text retrieval;
-  - collection/library enumeration;
-  - incremental content-hash state;
-  - direct MKG `PaperContent` construction;
-  - concept extraction and explicit relation persistence;
-  - similarity-edge generation from Zotero `find_similar`;
-  - CLI commands and tests.
-- Added GitHub Actions CI and iterated until install / Ruff / pytest / CLI smoke test all passed.
-- Changed the integration model from runtime cloning to a self-contained vendored MKG tree.
-- Added `.github/workflows/vendor-mkg.yml`.
-- GitHub Actions successfully executed:
-  - downloaded `Seaual/meta-knowledge-graph` `main.zip`;
-  - unzipped it;
-  - copied the complete source tree into `vendor/meta-knowledge-graph/`;
-  - preserved upstream license;
-  - committed the vendor import to `main` as commit `50a4bede06ee42b7f23e88fd29f7ed0d69c996d5`.
-- Updated runtime/CI/docs to use `vendor/meta-knowledge-graph` directly and remove the runtime bootstrap requirement.
-
-### CI validation
-
-The integration CI has passed the following stages before vendoring:
-
-```text
-Install ✅
-Bootstrap/source availability ✅
-Ruff ✅
-Pytest ✅
-CLI import smoke test ✅
-```
-
-After vendoring, CI is configured to verify `vendor/meta-knowledge-graph/mkg/__init__.py` directly rather than cloning MKG.
-
-### Important implementation discovery
-
-Upstream MKG currently cannot be used as a normal `pip install git+https://...` dependency because setuptools detects multiple top-level packages/directories in the flat repository layout (`mkg`, `backend`, `frontend`, `docker`, `icon`). Vendoring therefore avoids a packaging problem while keeping the upstream source intact.
+- Inspected `Pyrojewel-zard/zotero-mcp` and verified Streamable HTTP MCP, complete-text retrieval, and semantic `find_similar` path.
+- Implemented MCP JSON-RPC client, Zotero normalization/full-text retrieval, collection/library enumeration, content-hash incremental state, direct MKG `PaperContent`, concept extraction/relation persistence, similarity-edge generation, CLI, and tests.
+- Added GitHub Actions CI and iterated until install / Ruff / integration pytest / CLI smoke test passed.
+- Vendored the complete `Seaual/meta-knowledge-graph` source into `vendor/meta-knowledge-graph/` using its GitHub source ZIP and preserved upstream metadata/license.
+- Changed runtime/CI/docs to use the vendored source directly.
 
 ### Live validation still required
 
-This GitHub-connected session cannot access the user's localhost Zotero MCP endpoint. The following must be run on the machine where Zotero is active:
+This GitHub-connected session cannot access the user's localhost Zotero MCP endpoint. Base live checks remain:
 
 ```bash
 grz doctor
@@ -59,9 +76,3 @@ grz sync-item <ITEM_KEY> --process
 grz build-similarity --top-k 8 --min-score 0.55
 grz stats
 ```
-
-### Current phase
-
-Repository implementation and vendoring: **complete**.
-
-Live Zotero end-to-end verification: **pending**.
