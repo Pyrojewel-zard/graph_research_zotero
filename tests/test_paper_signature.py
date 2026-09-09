@@ -1,6 +1,9 @@
 import json
 
-from graph_research_zotero.paper_signature import DeepReadResult, parse_deep_read_result
+from graph_research_zotero.paper_signature import (
+    DeepReadResult,
+    parse_deep_read_result,
+)
 
 
 PAYLOAD = {
