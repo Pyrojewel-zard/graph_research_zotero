@@ -21,8 +21,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
-      - name: Verify vendored MKG
-        run: test -f vendor/meta-knowledge-graph/mkg/__init__.py
+      - name: Verify vendored sources
+        run: |
+          test -f vendor/meta-knowledge-graph/mkg/__init__.py
+          test -f .agents/skills/ljg-paper/SKILL.md
+          test -f .agents/skills/ljg-paper/ReadingGuide.md
       - name: Ruff
         run: ruff check src tests
       - name: Pytest integration package
