@@ -1,9 +1,6 @@
 import json
 
-from graph_research_zotero.paper_signature import (
-    DeepReadResult,
-    parse_deep_read_result,
-)
+import graph_research_zotero.paper_signature as signatures
 
 
 PAYLOAD = {
@@ -46,18 +43,18 @@ PAYLOAD = {
 
 
 def test_parse_direct_and_claude_wrapped_result():
-    direct = parse_deep_read_result(json.dumps(PAYLOAD))
-    assert isinstance(direct, DeepReadResult)
+    direct = signatures.parse_deep_read_result(json.dumps(PAYLOAD))
+    assert isinstance(direct, signatures.DeepReadResult)
     assert direct.signature.paper_id == "paper-a"
 
-    wrapped = parse_deep_read_result(
+    wrapped = signatures.parse_deep_read_result(
         json.dumps({"type": "result", "is_error": False, "result": json.dumps(PAYLOAD)})
     )
     assert wrapped.signature.main_contribution.startswith("A transferable")
 
 
 def test_embedding_text_excludes_human_note_and_is_stable():
-    result = DeepReadResult.model_validate(PAYLOAD)
+    result = signatures.DeepReadResult.model_validate(PAYLOAD)
     first = result.signature.embedding_text()
     second = result.signature.embedding_text()
     assert first == second
