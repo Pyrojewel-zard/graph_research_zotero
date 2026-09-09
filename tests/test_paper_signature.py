@@ -2,7 +2,6 @@ import json
 
 from graph_research_zotero import paper_signature as signatures
 
-
 PAYLOAD = {
     "note_markdown": "# Note\n\nA useful explanation.",
     "signature": {
